@@ -1,24 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Multi-Language Translator
+
+This is a [Next.js](https://nextjs.org) application that provides simultaneous multi-language translation with text-to-speech capabilities.
+
+## Features
+
+- **Multi-Language Translation:** Translate text into multiple languages at once.
+- **Dynamic Language Panels:** Add and remove language panels dynamically.
+- **Source Language Selection:** Change the source language for translation.
+- **Automatic Language Swapping:** If a new source language is already a target language, the two are automatically swapped.
+- **Text-to-Speech:** Listen to the pronunciation of the source text and the translated text.
+- **Client-Side Caching:** Speech audio is cached on the client to prevent redundant API calls.
+
+## Tech Stack
+
+- [Next.js](https://nextjs.org) - React framework for server-side rendering and static site generation.
+- [Tailwind CSS](https://tailwindcss.com) - A utility-first CSS framework for rapid UI development.
+- [TypeScript](https://www.typescriptlang.org) - A typed superset of JavaScript that compiles to plain JavaScript.
+- [translate](https://www.npmjs.com/package/translate) - A simple translation library.
+- [Kokoro](https://github.com/remsky/Kokoro-FastAPI) - A local text-to-speech server.
 
 ## Getting Started
 
-First, run the development server:
+First, ensure you have the [Kokoro server](https://github.com/remsky/Kokoro-FastAPI) running on `http://localhost:8880`.
+
+Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app/api/`: Contains the API routes for translation and speech synthesis.
+- `src/components/`: Contains the React components for the application.
+- `src/lib/`: Contains shared libraries, such as the list of supported languages.
+- `docs/`: Contains project documentation and objectives.
 
 ## Learn More
 
