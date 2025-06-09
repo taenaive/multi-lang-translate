@@ -15,19 +15,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Language not supported for speech' }, { status: 400 });
     }
 
-    const kokoroResponse = await fetch('http://localhost:8880/v1/audio/speech', {
+    if (!process.env.KOKORO_API_URL) {
+      return NextResponse.json({ error: 'Speech service not configured' }, { status: 500 });
+    }
+
+    const kokoroResponse = await fetch(process.env.KOKORO_API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+      'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        input: text,
-        voice: voice,
-        response_format: 'mp3',
-        download_format: 'mp3',
-        stream: true,
-        speed: 1,
-        return_download_link: true,
+      input: text,
+      voice: voice,
+      response_format: 'mp3',
+      download_format: 'mp3',
+      stream: true,
+      speed: 1,
+      return_download_link: true,
       }),
     });
 

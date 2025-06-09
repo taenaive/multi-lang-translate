@@ -26,7 +26,7 @@ const TargetPanel = ({ language, translatedText, onRemove, loading }: TargetPane
           </button>
         </div>
       </div>
-      <div className="w-full h-40 p-4 bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-white">
+      <div className="w-full h-40 p-4 bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-white text-xl overflow-y-auto">
         {loading ? 'Translating...' : (translatedText || "Translation will appear here...")}
       </div>
     </div>

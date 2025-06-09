@@ -1,7 +1,7 @@
 # using Kokoro  for speech
 
-- for speeach we will use Kokoro local server(source URL: https://github.com/remsky/Kokoro-FastAPI) already running on http://localhost:8880  
-- server is running on http://localhost:8880
+- for speeach we will use Kokoro private server(source URL: https://github.com/remsky/Kokoro-FastAPI) already running on http://kokoro.tabom.org 
+- server is running on http://kokoro.tabom.org
 - for POST call we will use this Kokoro's end point: /v1/audio/speech
 - paylaod will look like this
 
