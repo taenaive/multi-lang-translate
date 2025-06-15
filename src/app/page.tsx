@@ -62,7 +62,7 @@ export default function Home() {
           }
           const data = await response.json();
           return { ...panel, translatedText: data.translatedText, loading: false };
-        } catch (error) {
+        } catch {
           return { ...panel, translatedText: 'Error', loading: false };
         }
       })
