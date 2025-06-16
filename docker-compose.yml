@@ -1,6 +1,6 @@
 services:
   app:
-    build: .
+    image: ghcr.io/taenaive/multi-lang-translater:latest
     ports:
       - "3000:3000"
     env_file:
