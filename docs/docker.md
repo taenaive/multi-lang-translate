@@ -112,12 +112,13 @@ Run with: `docker-compose up --build` or `docker compose up -d --build`
 
 ## ⚠️ Security Notes
 
-- Never commit your actual API key (AIzaSyAQaOIrFQmVuTqn4s_3G2ulF9uCLs4HbKs) to version control
 - Use .env.docker for container environment variables
 - The Dockerfile runs as non-root user for security
 
 ## 🚀 Next Steps
 
-To implement this containerization, you'll need to switch to Code mode to create the necessary files (Dockerfile, .dockerignore, .env.docker, and update next.config.ts). The current Ask mode doesn't allow file creation.
+```sh
+docker tag your-app-name ghcr.io/YOUR_GITHUB_USERNAME/your-app-name:latest
+docker push ghcr.io/YOUR_GITHUB_USERNAME/your-app-name:latest
 
-Your application structure with Next.js 15.3.3, React 19, and the translate package is well-suited for containerization with this approach.
+```
