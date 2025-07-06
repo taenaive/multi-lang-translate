@@ -8,6 +8,12 @@ A secure, multi-language translation application with user authentication, built
 - **Multiple Authentication Methods:**
   - Google OAuth integration
   - Email/Password registration and login
+- **Role-Based Access Control:**
+  - User roles: USER, ADMIN, MODERATOR
+  - Protected admin dashboard for user management
+- **Subscription Management:**
+  - Subscription tiers: FREE, PRO, ULTRA, ENTERPRISE
+  - Automatic subscription expiration handling
 - **Protected Routes:** Translation functionality requires authentication
 - **Session Management:** Secure JWT-based sessions with NextAuth.js
 - **Password Security:** Bcrypt hashing for user passwords
@@ -29,6 +35,13 @@ A secure, multi-language translation application with user authentication, built
 - **Dark Mode Support:** Automatic theme detection and switching
 - **Loading States:** Clear feedback during translation and authentication
 - **Error Handling:** Comprehensive error messages and validation
+
+### 👥 Admin Dashboard
+- **User Management:** View all registered users with detailed information
+- **Role Administration:** Manage user roles and permissions
+- **Subscription Tracking:** Monitor user subscription tiers and expiration dates
+- **Real-time Statistics:** Live metrics for users, roles, and subscriptions
+- **Authentication Analytics:** Track login methods and verification status
 
 ## Tech Stack
 
@@ -115,25 +128,61 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 ```
 / (page.tsx)                 → Landing page with authentication
 /translate (page.tsx)        → Protected translator interface
+/admin (page.tsx)            → Protected admin dashboard
 /api/auth/[...nextauth]      → NextAuth.js authentication
 /api/auth/register           → User registration endpoint
+/api/users                   → User management API
+/api/users/[id]              → Individual user API
 /api/translate               → Translation service
 /api/speech                  → Text-to-speech proxy
 ```
 
 ### Database Schema
 ```prisma
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  ULTRA
+  ENTERPRISE
+}
+
 User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  name          String?
-  image         String?
-  password      String?   // For email/password auth
-  accounts      Account[] // OAuth accounts
-  sessions      Session[] // User sessions
+  id               String           @id @default(cuid())
+  email            String           @unique
+  emailVerified    DateTime?
+  name             String?
+  image            String?
+  password         String?          // For email/password auth
+  role             UserRole         @default(USER)
+  subscriptionTier SubscriptionTier @default(FREE)
+  subscriptionEnds DateTime?        // Subscription expiration
+  accounts         Account[]        // OAuth accounts
+  sessions         Session[]        // User sessions
 }
 ```
+
+**Key Models**:
+- `User`: Core user data with roles, subscriptions, and authentication support
+- `Account`: OAuth provider accounts (Google, etc.)
+- `Session`: User session management
+- `VerificationToken`: Email verification tokens
+
+**Role System**:
+- `USER`: Standard access to translation features
+- `ADMIN`: Full system access including user management
+- `MODERATOR`: Enhanced permissions for content moderation
+
+**Subscription Tiers**:
+- `FREE`: Basic translation features (default)
+- `PRO`: Enhanced features and higher usage limits
+- `ULTRA`: Premium features and priority support
+- `ENTERPRISE`: Full feature set for business use
 
 ### Project Structure
 ```
@@ -141,18 +190,24 @@ src/
 ├── app/
 │   ├── api/                 # API routes
 │   │   ├── auth/           # Authentication endpoints
+│   │   ├── users/          # User management API
 │   │   ├── translate/      # Translation service
 │   │   └── speech/         # Text-to-speech proxy
+│   ├── admin/              # Protected admin dashboard
 │   ├── translate/          # Protected translator page
 │   ├── page.tsx           # Landing page
 │   └── layout.tsx         # Root layout with session provider
 ├── components/            # React components
+│   ├── UsersList.tsx     # Admin user management
+│   ├── SessionProvider.tsx # NextAuth session context
 │   ├── SourceText.tsx    # Text input component
 │   ├── TargetPanel.tsx   # Translation result panels
 │   ├── SpeakButton.tsx   # Audio playback
 │   └── LanguageSelector.tsx
 ├── lib/                  # Utilities and configuration
 │   ├── auth.ts          # NextAuth.js configuration
+│   ├── users.ts         # User management utilities
+│   ├── userManagement.ts # Role and subscription management
 │   └── languages.ts     # Language definitions
 └── middleware.ts        # Route protection middleware
 ```
@@ -225,13 +280,76 @@ Add new languages in `src/lib/languages.ts`:
 }
 ```
 
+## User Management & Administration
+
+### Role-Based Access Control
+
+The application implements a comprehensive role-based system:
+
+#### **User Roles**:
+```typescript
+// Available roles
+type UserRole = 'USER' | 'ADMIN' | 'MODERATOR'
+
+// Default: All new users start as 'USER'
+// Admins can be promoted via the admin dashboard or API
+```
+
+#### **Subscription Tiers**:
+```typescript
+// Available subscription tiers
+type SubscriptionTier = 'FREE' | 'PRO' | 'ULTRA' | 'ENTERPRISE'
+
+// Default: All new users start with 'FREE' tier
+// Subscriptions can have expiration dates
+```
+
+### Admin Dashboard Features
+
+- **User Management**: View all registered users with detailed information
+- **Role Administration**: Promote/demote users between roles
+- **Subscription Management**: Upgrade/downgrade user subscription tiers
+- **Analytics Dashboard**: Real-time statistics on users, roles, and subscriptions
+- **Authentication Insights**: Track login methods and verification status
+
+### API Endpoints for User Management
+
+```typescript
+// Get all users (admin only)
+GET /api/users
+
+// Get user count
+GET /api/users?action=count
+
+// Get specific user
+GET /api/users/[id]
+
+// Update user role (requires admin privileges)
+updateUserRole(userId: string, role: UserRole)
+
+// Update subscription
+updateUserSubscription(userId: string, tier: SubscriptionTier, expires?: Date)
+```
+
+### Access Control Matrix
+
+| Feature | FREE | PRO | ULTRA | ENTERPRISE | ADMIN |
+|---------|------|-----|-------|------------|-------|
+| Basic Translation | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Text-to-Speech | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Multiple Languages | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Admin Dashboard | ❌ | ❌ | ❌ | ❌ | ✅ |
+| User Management | ❌ | ❌ | ❌ | ❌ | ✅ |
+
 ## Security Features
 
 - **Route Protection:** Middleware prevents unauthorized access
+- **Role-Based Access:** Admin routes protected by role checking
 - **Password Hashing:** Bcrypt with 12 rounds for secure storage
 - **Session Security:** JWT tokens with secure configuration
 - **Input Validation:** Server-side validation for all inputs
 - **CSRF Protection:** Built-in NextAuth.js CSRF protection
+- **Subscription Validation:** Automatic expiration handling
 
 ## Contributing
 

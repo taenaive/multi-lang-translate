@@ -92,6 +92,14 @@ export default function TranslatePage() {
             <span className="text-sm text-gray-600 dark:text-gray-400">
               Welcome, {session.user?.name}
             </span>
+            {session.user?.role === 'ADMIN' && (
+              <button
+                onClick={() => window.location.href = '/admin'}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Admin
+              </button>
+            )}
             <button
               onClick={() => window.location.href = '/api/auth/signout'}
               className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
