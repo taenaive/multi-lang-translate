@@ -27,7 +27,7 @@ export default function AuthButton() {
     return (
       <button
         onClick={() => signOut(auth)}
-        className="px-4 py-2 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700"
+        className="px-4 py-2 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer hover:cursor-pointer"
       >
         Logout
       </button>
@@ -35,7 +35,7 @@ export default function AuthButton() {
   }
 
   return (
-    <Link href="/login" className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700">
+    <Link href="/login" className="px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer hover:cursor-pointer">
       Login
     </Link>
   );

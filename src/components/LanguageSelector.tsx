@@ -47,7 +47,7 @@ const LanguageSelector = ({ onAddLanguage, activeLanguages }: LanguageSelectorPr
       </select>
       <button
         onClick={handleAdd}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 cursor-pointer hover:cursor-pointer disabled:cursor-not-allowed"
         disabled={!selectedLanguage}
       >
         Add Panel

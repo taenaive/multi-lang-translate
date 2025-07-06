@@ -1,94 +1,84 @@
-# Multi-Language Translator - Restructuring and Google Cloud Integration Plan
+# Multi-Language Translator - Local Storage Integration Plan
 
-## 1. Foundational Setup
+## Overview
+This plan outlines the implementation of local storage to persist user configurations (language panels) and maintain a translation history, allowing users to revisit past translations and their associated audio.
 
-### 1.1. Install Dependencies
-- Install Firebase for authentication and Google Cloud Translate for the translation API.
-```bash
-npm install firebase @google-cloud/translate
-```
+## 1. Panel Configuration Persistence
 
-### 1.2. Environment Variable Setup
-- Update your `.env` file in the root of the project. Ensure the following variables are present.
-
-```env
-# Google Cloud
-GOOGLE_API_KEY="your-google-api-key" # You may already have this as API_KEY
-GOOGLE_PROJECT_ID="your-google-project-id"
-
-# Firebase - These should already be in your file
-NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-firebase-auth-domain"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-firebase-project-id"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-firebase-storage-bucket"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-firebase-messaging-sender-id"
-NEXT_PUBLIC_FIREBASE_APP_ID="your-firebase-app-id"
-```
-
-### 1.3. Firebase Initialization
-- Create a new file `src/lib/firebase.ts` to initialize the Firebase app. This will be used by all authentication components.
-
-## 2. Backend API Migration
-
-### 2.1. Migrate Translation API to Google Translate
-- **File**: `src/app/api/translate/route.ts`
-- **Action**: Replace the existing `translate` library with the `@google-cloud/translate` SDK.
-- **Details**:
-    - Use the `TranslationServiceClient` to interact with the Google Translate API.
-    - The API key and project ID will be read from the environment variables.
-    - Ensure the new implementation can handle the language codes from the frontend.
-
-### 2.2. Migrate Speech API to Google Cloud Text-to-Speech
-- **File**: `src/app/api/speech/route.ts`
-- **Action**: Replace the Kokoro API with Google Cloud Text-to-Speech.
-- **Details**:
-    - You will need to install the `@google-cloud/text-to-speech` package.
-    ```bash
-    npm install @google-cloud/text-to-speech
-    ```
-    - Use the `TextToSpeechClient` to synthesize speech from text.
-    - The API will receive text and a language code, and return an audio stream.
-    - You will need to map the language names to the appropriate Google Cloud voice names. For Portuguese (Portugal), you can use a voice like `pt-PT-Wavenet-A`.
-
-## 3. Frontend Restructuring and Authentication
-
-### 3.1. Create New Home Page
-- **File**: `src/app/page.tsx`
-- **Action**: Convert the existing translator page into a landing page.
-- **Details**:
-    - Add a welcome message and a brief description of the application.
-    - Include "Login" and "Sign Up" buttons.
-    - Add a button or link to the translator page that will be protected.
-
-### 3.2. Move Translator to a Separate Route
+### 1.1. Save Panel Configuration to Local Storage
 - **File**: `src/app/translate/page.tsx`
-- **Action**: Create a new page for the translator.
-- **Details**:
-    - Move the existing translator component code from `src/app/page.tsx` to this new file.
-    - This page will be protected, and only accessible to authenticated users.
+- **Action**: Implement a `useEffect` hook or similar mechanism to save the `targetPanels` state to local storage whenever it changes.
+- **Key**: Use a consistent key, e.g., `'translatorPanels'`.
+- **Details**: The `targetPanels` array (containing language, translatedText, loading state) should be serialized to JSON before saving.
 
-### 3.3. Implement Authentication Components
-- **Action**: Create the following new components in `src/components/auth`:
-    - `LoginForm.tsx`: A form for users to log in with email and password.
-    - `SignupForm.tsx`: A form for new users to create an account.
-    - `AuthButton.tsx`: A button that shows "Login" or "Logout" based on the user's authentication state.
-    - `withAuth.tsx`: A Higher-Order Component (HOC) to protect pages and redirect unauthenticated users.
-
-### 3.4. Protect the Translator Route
+### 1.2. Load Panel Configuration from Local Storage
 - **File**: `src/app/translate/page.tsx`
-- **Action**: Wrap the translator page with the `withAuth` HOC to ensure only authenticated users can access it.
+- **Action**: When the `TranslatePage` component mounts, attempt to load the `targetPanels` state from local storage.
+- **Details**: If data is found, parse it from JSON and use it to initialize the `targetPanels` state. If not found, use the default initial state.
 
-## 4. Finalizing and Testing
+## 2. Translation History Implementation
 
-### 4.1. Update Navigation
-- **Action**: Update the main layout or header to include links to the home page, translator page, and the `AuthButton`.
+### 2.1. Define History Data Structure
+- **Location**: Create a new type definition, e.g., in `src/types/index.ts` or directly in `src/lib/history.ts`.
+- **Structure**: Each history entry should include:
+    - `id`: Unique identifier (e.g., timestamp).
+    - `sourceText`: The original text translated.
+    - `sourceLanguage`: The original language of the text.
+    - `targetPanels`: An array similar to the `targetPanels` state, but storing the final translated text and the voice used.
+    - `timestamp`: Date/time of the translation.
 
-### 4.2. Testing
-- **Action**: Thoroughly test the following:
-    - User registration and login flows.
-    - That the `/translate` route is properly protected.
-    - The new Google-powered translation and speech synthesis functionality.
-    - The overall user experience.
+### 2.2. Save Translation to History
+- **File**: `src/app/translate/page.tsx`
+- **Action**: After a successful translation (within the `handleTranslate` function), create a new history entry and add it to a history array stored in local storage.
+- **Key**: Use a consistent key, e.g., `'translationHistory'`.
+- **Details**: 
+    - Retrieve existing history from local storage, or initialize an empty array.
+    - Add the new entry to the beginning of the array (LIFO).
+    - Implement a limit (e.g., 50 entries) to prevent local storage from growing indefinitely. Remove oldest entries if the limit is exceeded.
+    - Audio files will NOT be stored directly in local storage. Instead, the `voice` name and `languageCode` will be stored, and audio will be re-synthesized on demand when a history item is reloaded.
 
-### 4.3. Documentation
-- **Action**: Update the `README.md` and any other relevant documentation to reflect the new architecture, environment variables, and setup instructions.
+### 2.3. Load Translation History
+- **Location**: Create a new utility function, e.g., in `src/lib/history.ts`.
+- **Action**: Load the entire translation history from local storage.
+
+## 3. History Panel UI Component
+
+### 3.1. Create HistoryPanel Component
+- **File**: `src/components/HistoryPanel.tsx`
+- **Functionality**:
+    - Display a list of recent translation history entries.
+    - Each entry should show a summary (e.g., source text snippet, source language, and target languages).
+    - Implement a click handler for each history item.
+
+### 3.2. Integrate HistoryPanel into Translator Page
+- **File**: `src/app/translate/page.tsx`
+- **Action**: Add the `HistoryPanel` component to the right side of the main translator layout.
+- **Styling**: Adjust CSS (e.g., Tailwind CSS grid or flexbox) to accommodate the new panel.
+
+### 3.3. Restore Functionality from History
+- **File**: `src/app/translate/page.tsx` and `src/components/HistoryPanel.tsx`
+- **Action**: When a history item is clicked in `HistoryPanel`:
+    - Pass the selected history entry data back to `TranslatePage`.
+    - Update the `sourceLanguage` state with the history item's source language.
+    - Update the `targetPanels` state with the history item's target panels (including translated text).
+    - The `SourceText` component should be updated with the historical source text.
+    - Trigger re-synthesis of audio for the restored translation if needed (this will happen automatically when the `SpeakButton` is clicked on the restored panels).
+
+## 4. Refinements and Testing
+
+### 4.1. Clear History Functionality
+- **Action**: Add a button or option within the `HistoryPanel` to clear all stored translation history from local storage.
+
+### 4.2. Error Handling and Edge Cases
+- **Action**: Add robust error handling for local storage operations (e.g., `try-catch` blocks).
+- **Considerations**: What happens if local storage is full or disabled?
+
+### 4.3. Testing
+- **Action**: Thoroughly test:
+    - Saving and loading panel configurations.
+    - Saving, loading, and restoring translation history.
+    - Clearing history.
+    - UI responsiveness with the new history panel.
+
+### 4.4. Documentation Updates
+- **Action**: Update `README.md` to reflect the new local storage features and usage.

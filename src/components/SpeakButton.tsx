@@ -58,7 +58,7 @@ const SpeakButton = ({ text, language }: SpeakButtonProps) => {
     <button
       onClick={handleSpeak}
       disabled={isLoading || !text}
-      className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+      className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 cursor-pointer hover:cursor-pointer disabled:cursor-not-allowed"
       title="Listen to pronunciation"
       aria-label="Listen to pronunciation"
     >

@@ -20,7 +20,7 @@ const TargetPanel = ({ language, translatedText, onRemove, loading }: TargetPane
           <SpeakButton text={translatedText} language={language} />
           <button
             onClick={() => onRemove(language)}
-            className="text-red-500 hover:text-red-700"
+            className="text-red-500 hover:text-red-700 cursor-pointer hover:cursor-pointer"
           >
             Remove
           </button>

@@ -8,6 +8,8 @@ interface SourceTextProps {
   onTranslate: (text: string) => void;
   sourceLanguage: string;
   onSourceLanguageChange: (language: string) => void;
+  initialText?: string;
+  skipAutoTranslate?: boolean;
 }
 
 const useDebounce = (value: string, delay: number) => {
@@ -26,16 +28,25 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
-const SourceText = ({ onTranslate, sourceLanguage, onSourceLanguageChange }: SourceTextProps) => {
-  const [text, setText] = useState('');
+const SourceText = ({ onTranslate, sourceLanguage, onSourceLanguageChange, initialText = '', skipAutoTranslate = false }: SourceTextProps) => {
+  const [text, setText] = useState(initialText);
+  const [lastTranslatedText, setLastTranslatedText] = useState('');
   const debouncedText = useDebounce(text, 1000);
 
   useEffect(() => {
-    if (debouncedText) {
+    setText(initialText);
+  }, [initialText]);
+
+  useEffect(() => {
+    if (debouncedText && 
+        !skipAutoTranslate && 
+        debouncedText !== lastTranslatedText &&
+        debouncedText !== initialText) {
       onTranslate(debouncedText);
+      setLastTranslatedText(debouncedText);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedText]);
+  }, [debouncedText, skipAutoTranslate, initialText]);
 
   return (
     <div className="flex flex-col gap-4">
