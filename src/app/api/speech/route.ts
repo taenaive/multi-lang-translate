@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
+import { TextToSpeechClient } from '@google-cloud/text-to-speech';
+
 import { supportedLanguages } from '@/lib/languages';
+
+const textToSpeechClient = new TextToSpeechClient();
 
 export async function POST(request: Request) {
   try {
@@ -9,39 +13,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    const voice = supportedLanguages.find(lang => lang.name === language)?.voice;
+    const lang = supportedLanguages.find(lang => lang.name === language);
 
-    if (!voice) {
+    if (!lang) {
       return NextResponse.json({ error: 'Language not supported for speech' }, { status: 400 });
     }
 
-    if (!process.env.KOKORO_API_URL) {
-      return NextResponse.json({ error: 'Speech service not configured' }, { status: 500 });
-    }
+    const ttsRequest = {
+      input: { text },
+      voice: { languageCode: lang.code, name: lang.voice as string },
+      audioConfig: { audioEncoding: 'MP3' as const },
+    };
 
-    const kokoroResponse = await fetch(process.env.KOKORO_API_URL, {
-      method: 'POST',
-      headers: {
-      'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-      input: text,
-      voice: voice,
-      response_format: 'mp3',
-      download_format: 'mp3',
-      stream: true,
-      speed: 1,
-      return_download_link: true,
-      }),
-    });
+    const [response] = await textToSpeechClient.synthesizeSpeech(ttsRequest);
+    const audioContent = response.audioContent;
 
-    if (!kokoroResponse.ok) {
-      return NextResponse.json({ error: 'Failed to generate speech' }, { status: kokoroResponse.status });
-    }
-
-    const audioData = await kokoroResponse.arrayBuffer();
-
-    return new NextResponse(audioData, {
+    return new NextResponse(audioContent, {
       headers: {
         'Content-Type': 'audio/mpeg',
       },

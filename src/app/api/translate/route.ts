@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import translate from 'translate';
+import { TranslationServiceClient } from '@google-cloud/translate';
 
 import { supportedLanguages } from '@/lib/languages';
+
+const translationClient = new TranslationServiceClient();
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +20,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid language' }, { status: 400 });
     }
 
-    const translatedText = await translate(text, { from: fromCode, to: toCode });
+    const projectId = process.env.GOOGLE_PROJECT_ID;
+    const location = 'global';
+
+    const translateRequest = {
+      parent: `projects/${projectId}/locations/${location}`,
+      contents: [text],
+      mimeType: 'text/plain',
+      sourceLanguageCode: fromCode,
+      targetLanguageCode: toCode,
+    };
+
+    const [response] = await translationClient.translateText(translateRequest);
+    const translatedText = response.translations?.[0]?.translatedText || '';
 
     return NextResponse.json({ translatedText });
   } catch (error) {

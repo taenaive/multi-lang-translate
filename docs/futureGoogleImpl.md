@@ -1,21 +1,15 @@
 ## pre-plan to build language translator web app with Next.js
 
 # specific requirements
+- for translation, I want to use google service direct .feel free to suggest me something easy to implement.
 
-- This application will look like a google translate.
-- However, instead of just translate between 2 langages. this will have simulatneous multiple target languages.
-- each languages will have a text panel with their language codes.
-- user should have menu to add or remove multiple panels
-- for translation, I want to use google service .feel free to suggest me something easy to implement.
-
-
-
+# here is the example of how to use
 ```sh
 
 npm install @google-cloud/translate
 
 ```
-
+# this is the example code from google
 ```js
 
 const {TranslationServiceClient} = require('@google-cloud/translate');
