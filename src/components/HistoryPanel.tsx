@@ -83,7 +83,7 @@ export default function HistoryPanel({ onRestoreHistory, refreshTrigger, onSaveC
         </div>
       </div>
 
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+      <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
         {history.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 text-sm text-center py-8">
             No translation history yet

@@ -19,8 +19,12 @@ export default function SignupForm() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       router.push('/translate');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unknown error occurred.');
+      }
     }
   };
 
